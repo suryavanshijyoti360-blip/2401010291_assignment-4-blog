@@ -1,0 +1,106 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Blog</title>
+  <style>
+    body { font-family: Arial; margin:0; background:#0f172a; color:white; }
+    header { background:#1e293b; padding:15px; text-align:center; }
+    .container { padding:20px; max-width:700px; margin:auto; }
+    input, textarea { width:100%; padding:10px; margin:8px 0; border:none; border-radius:6px; }
+    button { padding:8px 12px; border:none; background:#38bdf8; border-radius:8px; cursor:pointer; margin:3px; }
+    .post { background:#1e293b; padding:15px; margin-top:15px; border-radius:10px; }
+    img { width:100%; border-radius:10px; margin-top:10px; }
+  </style>
+</head>
+<body><header>
+  <h1>My Blog ✍️</h1>
+</header><div class="container">
+  <h2>Create Post</h2>
+  <input id="title" placeholder="Enter title">
+  <textarea id="content" placeholder="Write your blog..."></textarea>
+  <input type="file" id="image">
+  <button onclick="addPost()">Publish</button>  <h2>All Posts</h2>
+  <div id="posts"></div>
+</div><script>
+let posts = JSON.parse(localStorage.getItem('posts')) || [];
+
+function saveToLocal(){
+  localStorage.setItem('posts', JSON.stringify(posts));
+}
+
+function displayPosts(){
+  let container = document.getElementById('posts');
+  container.innerHTML = '';
+
+  posts.forEach((post, index) => {
+    let div = document.createElement('div');
+    div.className = 'post';
+
+    div.innerHTML = `
+      <h3>${post.title}</h3>
+      <p>${post.content}</p>
+      ${post.image ? `<img src="${post.image}">` : ''}
+      <p>❤️ ${post.likes}</p>
+      <button onclick="likePost(${index})">Like</button>
+      <button onclick="editPost(${index})">Edit</button>
+      <button onclick="deletePost(${index})">Delete</button>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+function addPost(){
+  let title = document.getElementById('title').value;
+  let content = document.getElementById('content').value;
+  let file = document.getElementById('image').files[0];
+
+  if(!title || !content) return;
+
+  if(file){
+    let reader = new FileReader();
+    reader.onload = function(e){
+      posts.unshift({ title, content, image:e.target.result, likes:0 });
+      saveToLocal();
+      displayPosts();
+    };
+    reader.readAsDataURL(file);
+  } else {
+    posts.unshift({ title, content, image:null, likes:0 });
+    saveToLocal();
+    displayPosts();
+  }
+
+  document.getElementById('title').value = '';
+  document.getElementById('content').value = '';
+  document.getElementById('image').value = '';
+}
+
+function deletePost(index){
+  posts.splice(index,1);
+  saveToLocal();
+  displayPosts();
+}
+
+function editPost(index){
+  let newTitle = prompt('Edit title', posts[index].title);
+  let newContent = prompt('Edit content', posts[index].content);
+
+  if(newTitle && newContent){
+    posts[index].title = newTitle;
+    posts[index].content = newContent;
+    saveToLocal();
+    displayPosts();
+  }
+}
+
+function likePost(index){
+  posts[index].likes++;
+  saveToLocal();
+  displayPosts();
+}
+
+displayPosts();
+</script></body>
+</html>
